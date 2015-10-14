@@ -16,13 +16,13 @@ static NSString* sOpenCollectionCellViewDemoSegueID = @"CollectionViewCellDemoSe
 static NSString* sOpenScrollViewDemoSegueID = @"ScrollViewDemoSegue";
 
 
-@interface ViewController ()
+@interface ViewController ()<VungleSDKDelegate>
 
-@property (weak) UIView* tableViewEntry;
-@property (weak) UIView* collectionHeaderViewEntry;
-@property (weak) UIView* collectionCellViewEntry;
-@property (weak) UIView* scrollViewEntry;
-@property (weak) UIView* fullScreenAdEntry;
+@property (weak) UIButton* tableViewEntry;
+@property (weak) UIButton* collectionHeaderViewEntry;
+@property (weak) UIButton* collectionCellViewEntry;
+@property (weak) UIButton* scrollViewEntry;
+@property (weak) UIButton* fullScreenAdEntry;
 
 -(void) initializeVungleSDK;
 
@@ -49,9 +49,22 @@ static NSString* sOpenScrollViewDemoSegueID = @"ScrollViewDemoSegue";
     [self subviewPositionConstraints];
 }
 
--(void)viewWillAppear:(BOOL)animated
+-(void)viewDidAppear:(BOOL)animated
 {
     [self.navigationController setNavigationBarHidden:YES animated:NO];
+    [VungleSDK sharedSDK].delegate = self;
+    [self refreshFullScreenAdEntryStatus];
+}
+
+-(void) refreshFullScreenAdEntryStatus
+{
+    BOOL isAdPlayable = [VungleSDK sharedSDK].isAdPlayable;
+    [self.fullScreenAdEntry setTitleColor:isAdPlayable ? [UIColor whiteColor] : [UIColor lightGrayColor]forState:UIControlStateNormal];
+}
+
+- (void)vungleSDKAdPlayableChanged:(BOOL)isAdPlayable
+{
+    [self refreshFullScreenAdEntryStatus];
 }
 
 -(void) subviewSizeConstraints
@@ -145,17 +158,20 @@ static NSString* sOpenScrollViewDemoSegueID = @"ScrollViewDemoSegue";
     else if (sender == self.fullScreenAdEntry)
     {
         VungleSDK* sdk = [VungleSDK sharedSDK];
-        sdk.bannerView = nil;
-        sdk.floatingView = nil;
-        NSError *error;
-        [sdk playAd:self error:&error];
+        if ([sdk isAdPlayable])
+        {
+            sdk.bannerView = nil;
+            sdk.floatingView = nil;
+            NSError *error;
+            [sdk playAd:self error:&error];
+        }
     }
 }
 
 -(void) createSubViews
 {
     
-    UIView *(^subviewCreate)(NSString *subviewName, UIColor* bgColor) = ^(NSString *subviewName, UIColor* bgColor){
+    UIButton *(^subviewCreate)(NSString *subviewName, UIColor* bgColor) = ^(NSString *subviewName, UIColor* bgColor){
         UIFont *font = [UIFont fontWithName:@"Arial" size:30.f];
         UIButton *subView = [[UIButton alloc] initWithFrame:CGRectZero];
         [subView setTitle:subviewName forState:UIControlStateNormal];
@@ -163,7 +179,7 @@ static NSString* sOpenScrollViewDemoSegueID = @"ScrollViewDemoSegue";
         subView.titleLabel.font = font;
         [subView setTranslatesAutoresizingMaskIntoConstraints: NO];
         subView.backgroundColor = bgColor;
-        subView.titleLabel.textColor = [UIColor magentaColor];
+        [subView setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
         subView.layer.cornerRadius = 10;
         [subView addTarget:self action:@selector(clicked:) forControlEvents:UIControlEventTouchUpInside];
         [self.view addSubview: subView];
@@ -176,6 +192,7 @@ static NSString* sOpenScrollViewDemoSegueID = @"ScrollViewDemoSegue";
     self.collectionCellViewEntry = subviewCreate(@"Collection Cell Demo" ,[UIColor darkGrayColor]);
     self.scrollViewEntry = subviewCreate(@"Scroll View Demo", [UIColor darkGrayColor]);
     self.fullScreenAdEntry = subviewCreate(@"Full Screen Ad", [UIColor darkGrayColor]);
+    [self refreshFullScreenAdEntryStatus];
 }
 
 @end

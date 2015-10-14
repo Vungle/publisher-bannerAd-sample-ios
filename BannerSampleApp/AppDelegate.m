@@ -18,7 +18,7 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
-    [[VungleSDK sharedSDK] startWithAppId:@"vungleTest"];
+    [[VungleSDK sharedSDK] startWithAppId:@"BannerAdDemo"];
     [[VungleSDK sharedSDK] attachLogger:self];
     [[VungleSDK sharedSDK] setLoggingEnabled:YES];
     return YES;
